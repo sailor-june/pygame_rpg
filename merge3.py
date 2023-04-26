@@ -82,9 +82,9 @@ class Fighter:
         for i in range(7):
             img = pygame.image.load(f"img/{self.name}/hit/{i}.png")
             temp_list.append(img)
-
         self.animation_list.append(temp_list)
         temp_list = []
+        
         for i in range(7):
             img = pygame.image.load(f"img/{self.name}/dead/{i}.png")
             temp_list.append(img)
@@ -171,7 +171,9 @@ def atk(target):
     print("its happening")
     show_menu = False
     attack_start_time = pygame.time.get_ticks()
-
+def defend():
+    print("defend")
+    pass
 
 atk_buttons = [
     menu_sys.Button(
@@ -198,14 +200,7 @@ atk_buttons = [
         "atk3",
         lambda menu: menu.set_buttons(enemy_buttons),
     ),
-    menu_sys.Button(
-        button_img,
-        screen,
-        250,
-        screen_height - bottom_panel + 70,
-        "return",
-        lambda menu: menu.set_buttons(main_buttons),
-    ),
+    
 ]
 
 
@@ -232,7 +227,7 @@ main_buttons = [
 ]
 
 
-menu = menu_sys.Menu(screen, pointer_img, main_buttons)
+menu = menu_sys.Menu(screen, pointer_img, main_buttons, button_img)
 show_menu = True
 attack_start_time = None
 round_start = None
@@ -263,12 +258,27 @@ while run:
 
     else:
         round_start = pygame.time.get_ticks()
+        
         for bar in Fighter.all_healthbars:
             bar.draw()
+        
+        if current_fighter >= len(Fighter.all_fighters):
+                current_fighter = 0
+                for fighter in Fighter.all_fighters:
+                    if fighter.alive == True:
+                        fighter.action = 0
+                    # else:
+                    #     fighter.action = 2
+                show_menu = True
+                attack_start_time = None
+                menu.set_buttons(main_buttons)
+                continue
+        
         if Fighter.all_fighters[current_fighter].alive == True:
             Fighter.all_fighters[current_fighter].action = 1
         else:
             Fighter.all_fighters[current_fighter].action = 2
+            current_fighter+=1
 
         if (
             attack_start_time is not None
@@ -281,17 +291,7 @@ while run:
             print(current_fighter)
 
             current_fighter += 1
-            if current_fighter == len(Fighter.all_fighters):
-                current_fighter = 0
-                for fighter in Fighter.all_fighters:
-                    if fighter.alive == True:
-                        fighter.action = 0
-                    # else:
-                    #     fighter.action = 2
-                show_menu = True
-                attack_start_time = None
-                menu.set_buttons(main_buttons)
-                continue
+            
 
             attack_start_time = pygame.time.get_ticks()
 

@@ -35,13 +35,21 @@ class Button():
         return
     
 class Menu:
-    def __init__(self, screen, pointer, buttons):
+    
+    def __init__(self, screen, pointer_img, buttons, button_img):
         self.screen = screen
-        self.pointer_img= pointer
+        self.pointer_img= pointer_img
         self.buttons = buttons
+        self.button_img=button_img
         self.current_button = 0
-        self.pointer = Menu.Pointer(screen, pointer, self.buttons[self.current_button].rect.x- 50, self.buttons[self.current_button].rect.y)
-        
+        self.pointer = Menu.Pointer(self.screen, self.pointer_img, self.buttons[self.current_button].rect.x- 50, self.buttons[self.current_button].rect.y)
+        self.main_buttons = [
+    Button(
+        self.button_img, self.screen, 50, screen_height - bottom_panel + 15, "Attack", lambda menu: menu.set_buttons(atk_buttons),),
+    Button(self.button_img, self.screen, 250, screen_height - bottom_panel + 15, "Defend"),
+    Button(self.button_img, self.screen, 50, screen_height - bottom_panel + 70, "Tech"),
+    Button(self.button_img, self.screen, 250, screen_height - bottom_panel + 70, "Item"),
+]    
     def draw(self):
         for button in self.buttons:
                 button.draw()
@@ -74,6 +82,15 @@ class Menu:
 
     def set_buttons(self, buttons):   
         self.buttons = buttons
+        if "return" not in [button.text for button in self.buttons] and len(self.buttons)<4:
+            self.buttons.append(Button(
+            self.button_img,
+            self.screen,
+            250,
+            screen_height - bottom_panel + 70,
+            "return",
+            lambda menu: menu.set_buttons(self.main_buttons),
+            ),)
         for count, button in enumerate(self.buttons):
             if count % 2 == 0: 
                 button.rect.x=50
@@ -102,3 +119,5 @@ class Menu:
         def draw(self):
             self.surface.blit(self.image, (self.rect.x, self.rect.y))
             return 
+
+
