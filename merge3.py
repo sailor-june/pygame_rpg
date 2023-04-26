@@ -284,10 +284,9 @@ while run:
             attack_start_time is not None
             and pygame.time.get_ticks() - attack_start_time >= action_wait_time
         ):
-            if Fighter.all_fighters[current_fighter].alive == True:
-                Fighter.all_fighters[current_fighter].attack()
-            else:
-                pass
+            # if Fighter.all_fighters[current_fighter].alive == True:
+            Fighter.all_fighters[current_fighter].attack()
+            
             print(current_fighter)
 
             current_fighter += 1
