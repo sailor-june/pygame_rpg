@@ -1,6 +1,7 @@
 import pygame
 import random
 import menu_sys
+import types
 
 pygame.init()
 font = pygame.font.SysFont("Monaco", 26)
@@ -59,6 +60,7 @@ class Fighter:
     all_healthbars = []
 
     def __init__(self, x, y, name, max_hp, strength, moves):
+        self.initiative=None
         self.name = name
         self.max_hp = max_hp
         self.hp = max_hp
@@ -115,13 +117,24 @@ class Fighter:
             self.action = 0
         self.frame_index = 0
         self.update_time = pygame.time.get_ticks()
+    def perform_action(self):
+        if self.initiative is not None:
+           
+            self.initiative()
+            self.initiative=None
+
+    def set_initiative(self, func):
+        self.initiative = func
 
     def attack(self):
         self.update_time = pygame.time.get_ticks()
         self.action = 1
         rand = random.randint(-5, 5)
         damage = self.strength + rand
+        if self.target.initiative==self.target.defend:
+            damage-=damage//2
         self.target.hp -= damage
+        
         self.frame_index = 0
         print(f"{self.name} attacks {self.target.name} for {damage}")
         if self.target.hp <= 0:
@@ -130,13 +143,12 @@ class Fighter:
                 if button.text == self.target.name:
                     (enemy_buttons.remove(button))
         self.target = None
-
+    def defend(self):
+        print(f"{self.name} is defending!")
     def draw(self):
         screen.blit(self.image, self.rect)
 
-    def imgflip(self):
-        flip_image = pygame.transform.flip(self.image, True, False)
-        self.image = flip_image
+
 
     class HealthBar:
         def __init__(self, x, y, fighter):
@@ -160,20 +172,21 @@ hero = Fighter(100, 300, "hero", 50, 20, 6)
 bunny_list = [greenboy, blueboy]
 
 
-def atk(target):
+def take_turn(target,initiative):
     global show_menu
     global attack_start_time
     for fighter in Fighter.all_fighters:
         if fighter.name == "hero":
             fighter.target = target
+            fighter.set_initiative(initiative)
         else:
             fighter.target = hero
+            fighter.set_initiative(fighter.attack)
     print("its happening")
     show_menu = False
     attack_start_time = pygame.time.get_ticks()
-def defend():
-    print("defend")
-    pass
+
+
 
 atk_buttons = [
     menu_sys.Button(
@@ -215,19 +228,19 @@ for count, fighter in enumerate(Fighter.all_fighters):
                 50 + 200 * count,
                 screen_height - bottom_panel + 15,
                 fighter.name,
-                lambda *args, fighter=fighter: atk(fighter),
+                lambda *args, fighter=fighter: take_turn(fighter, hero.attack)
             )
         )
 main_buttons = [
     menu_sys.Button(
         button_img, screen, 50, screen_height - bottom_panel + 15, "Attack", lambda menu: menu.set_buttons(atk_buttons),),
-    menu_sys.Button(button_img, screen, 250, screen_height - bottom_panel + 15, "Defend"),
+    menu_sys.Button(button_img, screen, 250, screen_height - bottom_panel + 15, "Defend", lambda *args: take_turn(hero, hero.defend)),
     menu_sys.Button(button_img, screen, 50, screen_height - bottom_panel + 70, "Tech"),
     menu_sys.Button(button_img, screen, 250, screen_height - bottom_panel + 70, "Item"),
 ]
 
 
-menu = menu_sys.Menu(screen, pointer_img, main_buttons, button_img)
+menu = menu_sys.Menu(screen, pointer_img, main_buttons, button_img, main_buttons)
 show_menu = True
 attack_start_time = None
 round_start = None
@@ -239,7 +252,7 @@ while run:
     draw_bg()
     draw_panel()
     # draw fighters
-    hero.imgflip()
+    
 
     for fighter in Fighter.all_fighters:
         fighter.update()
@@ -267,6 +280,8 @@ while run:
                 for fighter in Fighter.all_fighters:
                     if fighter.alive == True:
                         fighter.action = 0
+                        fighter.initiative=None
+                        fighter.target=None
                     # else:
                     #     fighter.action = 2
                 show_menu = True
@@ -274,20 +289,22 @@ while run:
                 menu.set_buttons(main_buttons)
                 continue
         
-        if Fighter.all_fighters[current_fighter].alive == True:
-            Fighter.all_fighters[current_fighter].action = 1
+        spotlight= Fighter.all_fighters[current_fighter]
+        if spotlight.alive == True:
+            spotlight.action = 1
         else:
-            Fighter.all_fighters[current_fighter].action = 2
+            spotlight.action = 2
             current_fighter+=1
 
         if (
             attack_start_time is not None
             and pygame.time.get_ticks() - attack_start_time >= action_wait_time
         ):
-            # if Fighter.all_fighters[current_fighter].alive == True:
-            Fighter.all_fighters[current_fighter].attack()
+            #check for initiative
+
+            spotlight.perform_action()
             
-            print(current_fighter)
+            
 
             current_fighter += 1
             
