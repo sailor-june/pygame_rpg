@@ -36,20 +36,14 @@ class Button():
     
 class Menu:
     
-    def __init__(self, screen, pointer_img, buttons, button_img):
+    def __init__(self, screen, pointer_img, buttons, button_img, main_buttons):
         self.screen = screen
         self.pointer_img= pointer_img
         self.buttons = buttons
         self.button_img=button_img
         self.current_button = 0
         self.pointer = Menu.Pointer(self.screen, self.pointer_img, self.buttons[self.current_button].rect.x- 50, self.buttons[self.current_button].rect.y)
-        self.main_buttons = [
-    Button(
-        self.button_img, self.screen, 50, screen_height - bottom_panel + 15, "Attack", lambda menu: menu.set_buttons(atk_buttons),),
-    Button(self.button_img, self.screen, 250, screen_height - bottom_panel + 15, "Defend"),
-    Button(self.button_img, self.screen, 50, screen_height - bottom_panel + 70, "Tech"),
-    Button(self.button_img, self.screen, 250, screen_height - bottom_panel + 70, "Item"),
-]    
+        self.main_buttons = main_buttons    
     def draw(self):
         for button in self.buttons:
                 button.draw()
@@ -57,7 +51,9 @@ class Menu:
         
 
     def handle_event(self, event):
+        num_buttons=len(self.buttons)
         if event.type == pygame.KEYDOWN:
+            print(self.current_button)
             if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
                 if self.current_button %2==0:
                     self.current_button +=1
@@ -67,18 +63,23 @@ class Menu:
                 self.current_button -= 2
                 if self.current_button < 0:
                     self.current_button = len(self.buttons)-self.current_button*-1
+                
             elif event.key == pygame.K_DOWN:
                 self.current_button += 2
                 if self.current_button > len(self.buttons) - 1:
                     self.current_button = self.current_button - len(self.buttons)
+            elif event.key == pygame.K_x:
+                self.buttons[self.current_button].action(self)
+        
+        
 
-            # update pointer position
-            self.pointer.rect.x = self.buttons[self.current_button].rect.x - 50
-            self.pointer.rect.y = self.buttons[self.current_button].rect.y 
+
+        # update pointer position
+        self.pointer.rect.x = self.buttons[self.current_button].rect.x - 50
+        self.pointer.rect.y = self.buttons[self.current_button].rect.y 
 
             # handle button click
-            if event.key == pygame.K_x:
-                self.buttons[self.current_button].action(self)
+        
 
     def set_buttons(self, buttons):   
         self.buttons = buttons
